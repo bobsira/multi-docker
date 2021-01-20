@@ -1,0 +1,21 @@
+language: generic 
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t sirasira/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true sirasira/react-test npm test
+
+after_success:
+  - docker build -t sirasira/multi-client ./client
+  - docker build -t sirasira/multi-nginx ./nginx
+  - docker build -t sirasira/multi-server ./server
+  - docker build -t sirasira/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push sirasira/multi-client
+  - docker push sirasira/multi-nginx
+  - docker push sirasira/multi-server
+  - docker push sirasira/multi-worker
